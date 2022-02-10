@@ -2,3 +2,5 @@ test
 *~
 *.o
 .clangd
+a.out
+keycode
