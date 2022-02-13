@@ -232,6 +232,37 @@ inline auto LineReader::process_key(int key) -> bool
     }
     break;
 
+  case ALT_f:
+    {
+      const char *delimeters = " \t\n:-_'\"()[]{}";
+      auto i = m_line->find_first_not_of(delimeters, m_insert_char_at);
+      if (i != std::string::npos)
+	  i = m_line->find_first_of(delimeters, i+1);
+      m_insert_char_at = (i != std::string::npos) ? i:m_line->size();
+    }
+    break;
+
+  case ALT_b:
+    {
+      const char *delimeters = " \t\n:-_'\"()[]{}";
+      auto i = m_line->find_last_not_of(delimeters, m_insert_char_at);
+      if (i != std::string::npos)
+	  i = m_line->find_last_of(delimeters, i-1);
+      m_insert_char_at = (i != std::string::npos) ? i:0;
+    }
+    break;
+
+  case ALT_d:
+    {
+      const char *delimeters = " \t\n:-_'\"()[]{}";
+      auto i = m_line->find_first_not_of(delimeters, m_insert_char_at);
+      if (i != std::string::npos)
+	  i = m_line->find_first_of(delimeters, i+1);
+      auto j = (i != std::string::npos) ? i:m_line->size();
+      m_line->erase(m_insert_char_at, j-m_insert_char_at);
+    }
+    break;
+
   default:
     // Insert non-control characters to the current line at 'm_insert_char_at' position.
     if (!iscntrl(key)) {
