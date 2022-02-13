@@ -26,7 +26,7 @@ To use =LineReader= in you project,
 * Key Bindings
 
 - =C-f= is for =Ctrl + f=
-=- M-f= is for =Alt + f=
+- =M-f= is for =Alt + f=
 
 | Key                | Action                        |
 |--------------------+-------------------------------|
@@ -38,6 +38,9 @@ To use =LineReader= in you project,
 | M-d                | delete one word               |
 | C-p or Up Arrow    | edit previous line in history |
 | C-n or Down Arrow  | edit next line in history     |
+| M-l                | lowercase word                |
+| M-u                | uppercase word                |
+| M-c                | capitalize word               |
 
 * Notes
 
