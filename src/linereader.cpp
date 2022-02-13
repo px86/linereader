@@ -1,3 +1,4 @@
+#include <cctype>
 #include <iostream>
 #include <sys/ioctl.h>
 #include <unistd.h>
@@ -105,6 +106,9 @@ inline auto TermHandle::read_key() const -> std::int32_t
   case 'f' : return ALT_f;
   case 'b' : return ALT_b;
   case 'd' : return ALT_d;
+  case 'l' : return ALT_l;
+  case 'u' : return ALT_u;
+  case 'c' : return ALT_c;
   case '[' :
     seq[2] = read_byte();
     if (seq[2]>='0' && seq[2]<='9')
@@ -260,6 +264,46 @@ inline auto LineReader::process_key(int key) -> bool
 	  i = m_line->find_first_of(delimeters, i+1);
       auto j = (i != std::string::npos) ? i:m_line->size();
       m_line->erase(m_insert_char_at, j-m_insert_char_at);
+    }
+    break;
+
+  case ALT_l:
+    {
+      const char *delimeters = " \t\n:-_'\"()[]{}";
+      auto i = m_line->find_first_not_of(delimeters, m_insert_char_at);
+      if (i == std::string::npos)
+        break;
+      auto j = m_line->find_first_of(delimeters, i+1);
+      if (j == std::string::npos) j = m_line->size();
+      for (auto t=i; t<j; ++t) {m_line->at(t) = tolower(m_line->at(t));};
+      m_insert_char_at = j;
+    }
+    break;
+
+  case ALT_u:
+    {
+      const char *delimeters = " \t\n:-_'\"()[]{}";
+      auto i = m_line->find_first_not_of(delimeters, m_insert_char_at);
+      if (i == std::string::npos)
+        break;
+      auto j = m_line->find_first_of(delimeters, i+1);
+      if (j == std::string::npos) j = m_line->size();
+      for (auto t=i; t<j; ++t) {m_line->at(t) = toupper(m_line->at(t));};
+      m_insert_char_at = j;
+    }
+    break;
+
+  case ALT_c:
+    {
+      const char *delimeters = " \t\n:-_'\"()[]{}";
+      auto i = m_line->find_first_not_of(delimeters, m_insert_char_at);
+      if (i == std::string::npos)
+        break;
+      m_line->at(i) = toupper(m_line->at(i));
+      auto j = m_line->find_first_of(delimeters, i+1);
+      if (j == std::string::npos) j = m_line->size();
+      for (auto t=i+1; t<j; ++t) {m_line->at(t) = tolower(m_line->at(t));};
+      m_insert_char_at = j;
     }
     break;
 

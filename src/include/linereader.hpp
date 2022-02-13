@@ -56,5 +56,8 @@ enum Key {
   PAGE_DOWN,
   ALT_f,
   ALT_b,
-  ALT_d
+  ALT_d,
+  ALT_l,
+  ALT_u,
+  ALT_c
 };
