@@ -250,7 +250,7 @@ inline auto LineReader::process_key(int key) -> bool
     {
       const char *delimeters = " \t\n:-_'\"()[]{}";
       auto i = m_line->find_last_not_of(delimeters, m_insert_char_at);
-      if (i != std::string::npos)
+      if (i != std::string::npos && i != 0)
 	  i = m_line->find_last_of(delimeters, i-1);
       m_insert_char_at = (i != std::string::npos) ? i:0;
     }
