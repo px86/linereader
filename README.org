@@ -1,13 +1,13 @@
-#+TITLE: LineReader - something like GNU readline, but in C++
+#+TITLE: LineReader - A C++ Library For Line Editing
 #+AUTHOR: Pushkar Raj
 
 * About
 
-=LineReader= let's you edit commands on the command line. It is very handy when implementing a REPL e.g. an interactive shell.
+=LineReader= is a C++ library that provides line-editing, and history capabilities for interactive command line programs.
 
 * Usage
 
-Currently the library is compiled into a relocatable =obj= file and then compiled together with your project. However things might change soon. I am planning to make this a header only library.
+Include the =linereader.hpp= file, and  compile the =linereader.cpp= file together with your project.
 
 To use =LineReader= in you project,
 
@@ -23,11 +23,22 @@ To use =LineReader= in you project,
   }
 #+end_src
 
-* Shortcuts
+* Key Bindings
 
-Basic Emacs like movement keys are supported. For example, =C-b=, =C-f=, =C-d=, =C-p= and =C-n=.
+- =C-f= is for =Ctrl + f=
+=- M-f= is for =Alt + f=
+
+| Key                | Action                        |
+|--------------------+-------------------------------|
+| C-f or Right Arrow | move forward one character    |
+| C-b or Left Arrow  | move backward one character   |
+| M-f                | move forward one word         |
+| M-b                | move backward one word        |
+| C-d or Delete      | delete one character          |
+| M-d                | delete one word               |
+| C-p or Up Arrow    | edit previous line in history |
+| C-n or Down Arrow  | edit next line in history     |
 
 * Notes
 
 - Terminal escape sequences have been tested on =xterm= only.
-- Will not work on non-POSIX systems.
