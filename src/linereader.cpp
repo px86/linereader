@@ -1,21 +1,19 @@
-#include "linereader.hpp"
-
 #include <iostream>
-
 #include <sys/ioctl.h>
 #include <unistd.h>
 
-LineReader::LineReader() {
+#include "linereader.hpp"
+
+TermHandle::TermHandle()
+{
   m_raw_mode_enabled = false;
-  m_history.push_back("");
-  m_line = m_history.rbegin();
-  m_insert_char_at = m_line->size();
 
   // Save default termios.
   if (tcgetattr(STDIN_FILENO, &m_orig_termios)) {
-    perror("Error: in LineReader::LineReader -> tcgetattr failed");
+    perror("Error: tcgetattr failed");
     exit(EXIT_FAILURE);
   }
+
   // Settings for raw mode.
   m_raw_termios.c_iflag &=
       ~(IGNBRK | BRKINT | PARMRK | ISTRIP | INLCR | IGNCR | ICRNL | IXON);
@@ -26,25 +24,25 @@ LineReader::LineReader() {
 
   // minimum number of bytes to read before returning
   m_raw_termios.c_cc[VMIN] = 1;
-  // timeout in deci-seconds (1/10)
+  // timeout in deci-seconds (1/10) (Does it matter now?)
   m_raw_termios.c_cc[VTIME] = 1;
 }
 
-void LineReader::enable_raw_mode()
+inline void TermHandle::enable_raw_mode()
 {
   if (m_raw_mode_enabled) return;
   if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &m_raw_termios)) {
-    perror("Error: in LineReader::enable_raw_mode -> raw mode can not be enabled");
+    perror("Error: tcsetattr failed while trying to enable raw mode");
     exit(EXIT_FAILURE);
   }
   m_raw_mode_enabled = true;
 }
 
-void LineReader::disable_raw_mode()
+inline void TermHandle::disable_raw_mode()
 {
   if (!m_raw_mode_enabled) return;
   if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &m_orig_termios)) {
-    perror("Error: in LineReader::disable_raw_mode -> raw mode can not be disabled");
+    perror("Error: tcsetattr failed while trying to disable raw mode");
     exit(EXIT_FAILURE);
   }
   m_raw_mode_enabled = false;
@@ -52,23 +50,25 @@ void LineReader::disable_raw_mode()
 
 auto LineReader::readline(const char *prompt) -> std::string
 {
-  enable_raw_mode();
-  m_last_cursor_pos = get_cursor_position();
+  m_term.enable_raw_mode();
+
+  // Add a new string to m_history.
+  m_history.push_back("");
+  m_line = m_history.rbegin();
+  m_insert_char_at = 0;
+  m_cursor_position = m_term.get_cursor_position();
 
   auto redraw_line = [this, prompt]() {
-    auto new_cpos = get_cursor_position();
-    // Calculate the number of rows to be moved up
-    auto rows_up = new_cpos.row - m_last_cursor_pos.row;
-    if (rows_up > 0)
-      std::cout << "\x1b[" << rows_up << "A";
+    // Calculate the number of rows to be moved up.
+    auto rows_up = m_term.get_cursor_position().row - m_cursor_position.row;
+    if (rows_up > 0) std::cout << "\x1b[" << rows_up << "A";
 
     // Clear the screen from current line to the bottom
     std::cout << "\r\x1b[J" << prompt << *m_line;
 
     // Put the cursor at the current insertion position
     auto cols_left = m_line->size() - m_insert_char_at;
-    if (cols_left > 0)
-      std::cout << "\x1b[" << cols_left << "D";
+    if (cols_left > 0) std::cout << "\x1b[" << cols_left << "D";
 
     std::cout.flush();
   };
@@ -76,24 +76,24 @@ auto LineReader::readline(const char *prompt) -> std::string
   bool done = false;
   while (!done) {
     redraw_line();
-    int key = read_key();
+    int32_t key = m_term.read_key();
     if (key == -1) {
-      perror("Error: LineReader::read_key returned '-1'");
-      break;
+      perror("Error: read_key returned '-1'");
+      continue;
     }
     else done = process_key(key);
   }
 
-  disable_raw_mode();
+  m_term.disable_raw_mode();
   return *m_line;
 }
 
-inline auto LineReader::read_key() const -> int
+inline auto TermHandle::read_key() const -> std::int32_t
 {
   auto read_byte = []() {
     char byte;
     if (read(STDIN_FILENO, &byte, 1) == -1) {
-      perror("Error: in LineReader::read_key -> read failed");
+      perror("Error: read failed while trying to read a byte");
       exit(EXIT_FAILURE);
     } else return byte;
   };
@@ -138,36 +138,36 @@ inline auto LineReader::read_key() const -> int
   }
 }
 
-inline auto LineReader::get_cursor_position() const -> Coordinate
+inline auto TermHandle::get_cursor_position() const -> Position
 {
   char buff[32];
   size_t pos = 0;
-
+  // \x1b[6n query for cursor position.
   if (write(STDOUT_FILENO, "\x1b[6n", 4) < 4) {
-    perror("Error: in LineReader::get_cursor_position -> write failed");
+    perror("Error: write failed in get_cursor_position");
     exit(EXIT_FAILURE);
   }
   while (pos < sizeof(buff)) {
     if (read(STDIN_FILENO, buff + pos, 1) == -1) {
-      perror("Error: in LineReader::get_cursor_position -> read failed");
+      perror("Error: read failed in get_cursor_position");
       exit(EXIT_FAILURE);
     }
     if (buff[pos++] == 'R') break;
   }
   buff[pos] = '\0';
 
-  Coordinate cpos;
-  sscanf(buff, "\x1b[%ud;%udR", &cpos.row, &cpos.col);
-  return cpos;
+  Position cursor_pos;
+  sscanf(buff, "\x1b[%ud;%udR", &cursor_pos.row, &cursor_pos.col);
+  return cursor_pos;
 }
 
-inline auto LineReader::process_key(int key) -> bool {
-  // Return true to quit, false to continue processing more keys.
+inline auto LineReader::process_key(int key) -> bool
+{
+  // Return 'true' to quit, 'false' to continue processing more keys.
   switch (key) {
 
   case ENTER_KEY:
-    // TODO: implement history feature
-    save_line();
+    // return from readline
     return true;
 
   case CTRL_KEY('h'):
@@ -183,14 +183,15 @@ inline auto LineReader::process_key(int key) -> bool {
     break;
 
   case CTRL_KEY('c'):
+    // Discard the current line.
+    std::cout << "\x1b[31m" "^C" "\x1b[m\n";
+    m_cursor_position = m_term.get_cursor_position();
     m_line->clear();
     m_insert_char_at = 0;
     break;
 
   case CTRL_KEY('l'):
-    // Clear the screen and move the cursor to the top left corner.
-    m_last_cursor_pos.row = 1;
-    std::cout.write("\x1b[2J", 4);
+    m_cursor_position.row = 1;
     break;
 
   case HOME_KEY:
@@ -232,7 +233,7 @@ inline auto LineReader::process_key(int key) -> bool {
     break;
 
   default:
-    // Add non-control characters to the line.
+    // Insert non-control characters to the current line at 'm_insert_char_at' position.
     if (!iscntrl(key)) {
       if (m_insert_char_at >= 0 and m_insert_char_at < m_line->size()) {
         m_line->insert(m_line->begin() + m_insert_char_at, key);
@@ -243,9 +244,4 @@ inline auto LineReader::process_key(int key) -> bool {
     }
   }
   return false;
-}
-
-void LineReader::save_line() {
-  m_history.push_back(std::string(*m_line));
-  m_line = m_history.rbegin();
 }

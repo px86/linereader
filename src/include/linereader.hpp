@@ -8,30 +8,38 @@
 
 #define CTRL_KEY(x) ((x) & 0x1f)
 
-struct Coordinate {
-  unsigned int row, col;
+struct Position {
+  std::uint32_t row;
+  std::uint32_t col;
+};
+
+class TermHandle {
+public:
+  TermHandle();
+  void enable_raw_mode();
+  void disable_raw_mode();
+
+  Position get_cursor_position() const;
+  int32_t read_key() const;
+private:
+  termios m_orig_termios;
+  termios m_raw_termios;
+  bool m_raw_mode_enabled;
 };
 
 class LineReader {
 public:
-  LineReader();
+  LineReader() = default;
   std::string readline(const char *prompt);
 
 private:
   std::vector<std::string> m_history;
   std::vector<std::string>::reverse_iterator m_line;
   size_t m_insert_char_at;
-  Coordinate m_last_cursor_pos;
+  TermHandle m_term;
+  Position m_cursor_position;
 
-  bool m_raw_mode_enabled;
-  struct termios m_orig_termios;
-  struct termios m_raw_termios;
-  void enable_raw_mode();
-  void disable_raw_mode();
-  void save_line();
-  int read_key() const;
   bool process_key(int key);
-  Coordinate get_cursor_position() const;
 };
 
 enum Key {
