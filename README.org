@@ -28,19 +28,20 @@ To use =LineReader= in you project,
 - =C-f= is for =Ctrl + f=
 - =M-f= is for =Alt + f=
 
-| Key                | Action                        |
-|--------------------+-------------------------------|
-| C-f or Right Arrow | move forward one character    |
-| C-b or Left Arrow  | move backward one character   |
-| M-f                | move forward one word         |
-| M-b                | move backward one word        |
-| C-d or Delete      | delete one character          |
-| M-d                | delete one word               |
-| C-p or Up Arrow    | edit previous line in history |
-| C-n or Down Arrow  | edit next line in history     |
-| M-l                | lowercase word                |
-| M-u                | uppercase word                |
-| M-c                | capitalize word               |
+| Key                | Action                                        |
+|--------------------+-----------------------------------------------|
+| C-f or Right Arrow | move forward one character                    |
+| C-b or Left Arrow  | move backward one character                   |
+| M-f                | move forward one word                         |
+| M-b                | move backward one word                        |
+| C-d or Delete      | delete one character                          |
+| M-d                | delete one word                               |
+| C-p or Up Arrow    | edit previous line in history                 |
+| C-n or Down Arrow  | edit next line in history                     |
+| M-l                | lowercase word                                |
+| M-u                | uppercase word                                |
+| M-c                | capitalize word                               |
+| C-t                | swap current character and previous character |
 
 * Notes
 
