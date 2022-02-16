@@ -307,6 +307,21 @@ inline auto LineReader::process_key(int key) -> bool
     }
     break;
 
+  case CTRL_KEY('t'):
+    if (m_insert_char_at != 0 && m_line->size() > 1) {
+      if (m_insert_char_at == m_line->size()) {
+	char c = m_line->at(m_insert_char_at-2);
+        m_line->at(m_insert_char_at - 2) = m_line->at(m_insert_char_at - 1);
+        m_line->at(m_insert_char_at - 1) = c;
+      } else {
+	char c = m_line->at(m_insert_char_at-1);
+        m_line->at(m_insert_char_at - 1) = m_line->at(m_insert_char_at);
+        m_line->at(m_insert_char_at) = c;
+	++m_insert_char_at;
+      }
+    }
+    break;
+
   default:
     // Insert non-control characters to the current line at 'm_insert_char_at' position.
     if (!iscntrl(key)) {
