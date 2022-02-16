@@ -2,7 +2,7 @@
 #include <iostream>
 
 int main(int argc, char **argv) {
-  auto lr = LineReader();
+  auto lr = LineReader(".history_file");
   const char *prompt = "\x1b[33m" ">> " "\x1b[m ";
 
   for (int i=0; i<3; ++i) {

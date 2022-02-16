@@ -1,5 +1,7 @@
 #include <cctype>
+#include <fstream>
 #include <iostream>
+#include <string>
 #include <sys/ioctl.h>
 #include <unistd.h>
 
@@ -334,4 +336,29 @@ inline auto LineReader::process_key(int key) -> bool
     }
   }
   return false;
+}
+
+LineReader::LineReader(const char *historypath) {
+  m_historypath = historypath;
+
+  auto history_file = std::ifstream(historypath);
+  if (history_file) {
+    std::string hist_line;
+    while (history_file) {
+      std::getline(history_file, hist_line);
+      if (!hist_line.empty()) m_history.push_back(hist_line);
+    }
+  }
+}
+
+LineReader::~LineReader() {
+  if (m_historypath != nullptr) {
+    auto history_file = std::ofstream(m_historypath);
+    if (history_file) {
+      for (const auto& hist_lin: m_history)
+	history_file << hist_lin << '\n';
+
+      history_file.close();
+    }
+  }
 }

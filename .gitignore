@@ -4,3 +4,4 @@ test
 .clangd
 a.out
 keycode
+.history_file

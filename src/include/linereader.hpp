@@ -30,6 +30,8 @@ private:
 class LineReader {
 public:
   LineReader() = default;
+  LineReader(const char *historypath);
+  ~LineReader();
   std::string readline(const char *prompt);
 
 private:
@@ -39,6 +41,7 @@ private:
   TermHandle m_term;
   Position m_cursor_position;
 
+  const char *m_historypath;
   bool process_key(int key);
 };
 
