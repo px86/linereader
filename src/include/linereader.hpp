@@ -62,5 +62,6 @@ enum Key {
   ALT_d,
   ALT_l,
   ALT_u,
-  ALT_c
+  ALT_c,
+  ALT_t
 };

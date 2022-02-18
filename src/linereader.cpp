@@ -111,6 +111,7 @@ inline auto TermHandle::read_key() const -> std::int32_t
   case 'l' : return ALT_l;
   case 'u' : return ALT_u;
   case 'c' : return ALT_c;
+  case 't' : return ALT_t;
   case '[' :
     seq[2] = read_byte();
     if (seq[2]>='0' && seq[2]<='9')
@@ -321,6 +322,47 @@ inline auto LineReader::process_key(int key) -> bool
         m_line->at(m_insert_char_at) = c;
 	++m_insert_char_at;
       }
+    }
+    break;
+
+  case ALT_t:
+    if (m_insert_char_at != 0 && m_insert_char_at != m_line->size() &&
+        m_line->size() > 2) {
+      const char *delimeters = " \t\n:-_'\"()[]{}";
+
+      // r for right, and l for left hand side word
+      size_t r_start, r_end, l_start, l_end;
+
+      if (std::isspace(m_line->at(m_insert_char_at))) {
+	r_start = m_line->find_first_not_of(delimeters, m_insert_char_at);
+	if (r_start == std::string::npos) break;
+      } else {
+	r_start = m_line->find_last_of(delimeters, m_insert_char_at);
+	if (r_start == std::string::npos) break;
+	else r_start++;
+      }
+
+      r_end = m_line->find_first_of(delimeters, r_start);
+      if (r_end == std::string::npos) r_end = m_line->size();
+      else r_end--;
+
+      l_end = m_line->find_last_not_of(delimeters, r_start-1);
+      if (l_end == std::string::npos) break;
+
+      l_start = m_line->find_last_of(delimeters, l_end);
+      if (l_start == std::string::npos) l_start = 0;
+      else l_start++;
+
+      auto wr = m_line->substr(r_start, r_end - r_start + 1);
+      auto wl = m_line->substr(l_start, l_end - l_start + 1);
+
+      m_line->erase(r_start, wr.size());
+      m_line->insert(r_start, wl, 0, wl.size());
+
+      m_line->erase(l_start, wl.size());
+      m_line->insert(l_start, wr, 0, wr.size());
+
+      m_insert_char_at = r_start + wr.size();
     }
     break;
 
