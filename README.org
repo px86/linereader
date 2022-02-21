@@ -17,8 +17,16 @@ To use =LineReader= in you project,
 
   int main(int argc, char **argv) {
     auto lr = LineReader(".history_file");
-    auto str = lr.readline(">>> ");
-    std::cout << "\n LineReader returned: " << str << '\n';
+
+    while (lr) {
+      auto cmd = lr.readline(prompt);
+      if (!cmd.empty()) {
+        // parse and execute the command string.
+        // ...
+      }
+    }
+    std::cout << '\n' << "Bye!" << std::endl;
+
     return 0;
   }
 #+end_src

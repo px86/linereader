@@ -185,6 +185,12 @@ inline auto LineReader::process_key(int key) -> bool
 
   case DEL_KEY:
   case CTRL_KEY('d'):
+    if (m_line->empty()) {
+      m_good = false;
+      m_term.disable_raw_mode();
+      close(STDIN_FILENO);
+      return true; // end the loop
+    }
     if (m_insert_char_at < m_line->size())
       m_line->erase(m_insert_char_at, 1);
     break;
