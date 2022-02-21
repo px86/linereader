@@ -33,14 +33,14 @@ public:
   LineReader(const char *historypath);
   ~LineReader();
   std::string readline(const char *prompt);
-
+  operator bool() { return m_good; };
 private:
   std::vector<std::string> m_history;
   std::vector<std::string>::reverse_iterator m_line;
   size_t m_insert_char_at;
   TermHandle m_term;
   Position m_cursor_position;
-
+  bool m_good = true;
   const char *m_historypath;
   bool process_key(int key);
 };

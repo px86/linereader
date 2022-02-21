@@ -1,16 +1,26 @@
 #include "linereader.hpp"
 #include <iostream>
 
+bool execute(std::string &cmd);
+
 int main(int argc, char **argv) {
   auto lr = LineReader(".history_file");
   const char *prompt = "\x1b[33m" ">> " "\x1b[m ";
 
-  for (int i=0; i<3; ++i) {
-    // read 3 lines, to demonstrate history feature.
-    // Navigate the command history with C-p C-n or Up and Down arrows.
-    auto str = lr.readline(prompt);
-    std::cout << "\n[" << i << "] Line: " << str << '\n';
+  while (lr) {
+    auto cmd = lr.readline(prompt);
+    if (!cmd.empty()) execute(cmd);
   }
+  std::cout << '\n' << "Bye!" << std::endl;
 
   return 0;
+}
+
+bool execute(std::string &cmd) {
+  std::cout << '\n'
+            << "You entered: "
+            << cmd
+	    << std::endl;
+
+  return true;
 }
