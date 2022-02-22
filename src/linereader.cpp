@@ -174,6 +174,10 @@ inline auto LineReader::process_key(int key) -> bool
   switch (key) {
 
   case ENTER_KEY:
+    if (m_line->empty()) {
+      std::cout << '\n';
+      m_cursor_position = m_term.get_cursor_position();
+    }
     // return from readline
     return true;
 
