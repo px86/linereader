@@ -39,6 +39,7 @@ private:
   std::vector<std::string> m_killring;
   std::vector<std::string>::reverse_iterator m_line;
   std::vector<std::string>::reverse_iterator m_current_kill;
+  bool m_last_was_yank;
   size_t m_insert_char_at;
   TermHandle m_term;
   Position m_cursor_position;
