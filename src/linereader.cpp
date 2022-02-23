@@ -60,6 +60,7 @@ auto LineReader::readline(const char *prompt) -> std::string
   m_line = m_history.rbegin();
   m_insert_char_at = 0;
   m_cursor_position = m_term.get_cursor_position();
+  m_last_was_yank = false;
 
   auto redraw_line = [this, prompt]() {
     // Calculate the number of rows to be moved up.
@@ -112,6 +113,7 @@ inline auto TermHandle::read_key() const -> std::int32_t
   case 'u' : return ALT_u;
   case 'c' : return ALT_c;
   case 't' : return ALT_t;
+  case 'y' : return ALT_y;
   case '[' :
     seq[2] = read_byte();
     if (seq[2]>='0' && seq[2]<='9')
@@ -171,6 +173,10 @@ inline auto TermHandle::get_cursor_position() const -> Position
 inline auto LineReader::process_key(int key) -> bool
 {
   // Return 'true' to quit, 'false' to continue processing more keys.
+
+  if (key != CTRL_KEY('y') && key != ALT_y)
+    m_last_was_yank = false;
+
   switch (key) {
 
   case ENTER_KEY:
@@ -374,6 +380,48 @@ inline auto LineReader::process_key(int key) -> bool
 
       m_insert_char_at = r_start + wr.size();
     }
+    break;
+
+  case CTRL_KEY('k'):
+    {
+      auto killed_text =
+        m_line->substr(m_insert_char_at, m_line->size() - m_insert_char_at);
+      m_killring.push_back(killed_text);
+      m_current_kill = m_killring.rbegin();
+      m_line->erase(m_insert_char_at, m_line->size() - m_insert_char_at);
+    }
+    break;
+
+  case CTRL_KEY('u'):
+    {
+      auto killed_text = m_line->substr(0, m_insert_char_at);
+      m_killring.push_back(killed_text);
+      m_current_kill = m_killring.rbegin();
+      m_line->erase(0, m_insert_char_at);
+      m_insert_char_at = 0;
+    }
+    break;
+
+  case CTRL_KEY('y'):
+    if (m_killring.empty()) break;
+    m_line->insert(m_insert_char_at, *m_current_kill);
+    m_insert_char_at += m_current_kill->size();
+    m_last_was_yank = true;
+    break;
+
+  case ALT_y:
+    if (!m_last_was_yank || m_killring.size() == 1)
+      break;
+
+    m_insert_char_at -= m_current_kill->size();
+    m_line->erase(m_insert_char_at, m_current_kill->size());
+
+    ++m_current_kill;
+    if (m_current_kill == m_killring.rend())
+      m_current_kill = m_killring.rbegin();
+
+    m_line->insert(m_insert_char_at, *m_current_kill);
+    m_insert_char_at += m_current_kill->size();
     break;
 
   default:

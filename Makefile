@@ -14,4 +14,4 @@ keycode: src/tools/keycodes.cpp
 	$(CXX) $(CXXFLAGS) -o $@ $<
 
 clean:
-	rm -rf *.o test
+	rm -rf *.o test keycode
