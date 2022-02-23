@@ -99,7 +99,7 @@ inline auto TermHandle::read_key() const -> std::int32_t
 {
   auto read_byte = []() {
     char byte;
-    if (read(STDIN_FILENO, &byte, 1) == -1) {
+    if (read(STDIN_FILENO, &byte, 1) != 1) {
       perror("Error: read failed while trying to read a byte");
       exit(EXIT_FAILURE);
     } else return byte;
@@ -290,7 +290,6 @@ inline auto LineReader::process_key(int key) -> bool
 
   case ALT_l:
     {
-      const char *delimeters = " \t\n:-_'\"()[]{}";
       auto i = m_line->find_first_not_of(delimeters, m_insert_char_at);
       if (i == std::string::npos)
         break;
@@ -303,7 +302,6 @@ inline auto LineReader::process_key(int key) -> bool
 
   case ALT_u:
     {
-      const char *delimeters = " \t\n:-_'\"()[]{}";
       auto i = m_line->find_first_not_of(delimeters, m_insert_char_at);
       if (i == std::string::npos)
         break;
@@ -316,7 +314,6 @@ inline auto LineReader::process_key(int key) -> bool
 
   case ALT_c:
     {
-      const char *delimeters = " \t\n:-_'\"()[]{}";
       auto i = m_line->find_first_not_of(delimeters, m_insert_char_at);
       if (i == std::string::npos)
         break;
@@ -346,7 +343,6 @@ inline auto LineReader::process_key(int key) -> bool
   case ALT_t:
     if (m_insert_char_at != 0 && m_insert_char_at != m_line->size() &&
         m_line->size() > 2) {
-      const char *delimeters = " \t\n:-_'\"()[]{}";
 
       // r for right, and l for left hand side word
       size_t r_start, r_end, l_start, l_end;
