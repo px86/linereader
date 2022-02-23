@@ -65,10 +65,10 @@ auto LineReader::readline(const char *prompt) -> std::string
   m_cursor_position = m_term.get_cursor_position();
   m_last_was_yank = false;
 
-  auto redraw_line = [this, prompt]() {
-    // Calculate the number of rows to be moved up.
-    auto rows_up = m_term.get_cursor_position().row - m_cursor_position.row;
-    if (rows_up > 0) std::cout << "\x1b[" << rows_up << "A";
+  auto draw_line = [this, prompt]() {
+    std::cout << "\x1b["
+	      << m_cursor_position.row << ';'
+              << m_cursor_position.col << 'H';
 
     // Clear the screen from current line to the bottom
     std::cout << "\r\x1b[J" << prompt << *m_line;
@@ -82,7 +82,7 @@ auto LineReader::readline(const char *prompt) -> std::string
 
   bool done = false;
   while (!done) {
-    redraw_line();
+    draw_line();
     int32_t key = m_term.read_key();
     if (key == -1) {
       perror("Error: read_key returned '-1'");
