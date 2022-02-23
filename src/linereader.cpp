@@ -7,6 +7,9 @@
 
 #include "linereader.hpp"
 
+// Word delimeters
+const char *delimeters = " \t\n:-_'\"()[]{}";
+
 TermHandle::TermHandle()
 {
   m_raw_mode_enabled = false;
@@ -257,7 +260,6 @@ inline auto LineReader::process_key(int key) -> bool
 
   case ALT_f:
     {
-      const char *delimeters = " \t\n:-_'\"()[]{}";
       auto i = m_line->find_first_not_of(delimeters, m_insert_char_at);
       if (i != std::string::npos)
 	  i = m_line->find_first_of(delimeters, i+1);
@@ -267,17 +269,16 @@ inline auto LineReader::process_key(int key) -> bool
 
   case ALT_b:
     {
-      const char *delimeters = " \t\n:-_'\"()[]{}";
-      auto i = m_line->find_last_not_of(delimeters, m_insert_char_at);
-      if (i != std::string::npos && i != 0)
-	  i = m_line->find_last_of(delimeters, i-1);
-      m_insert_char_at = (i != std::string::npos) ? i:0;
+      if (m_insert_char_at == 0) break;
+      auto i = m_line->find_last_not_of(delimeters, m_insert_char_at - 1);
+      if (i != std::string::npos)
+	  i = m_line->find_last_of(delimeters, i);
+      m_insert_char_at = (i != std::string::npos) ? ++i : 0;
     }
     break;
 
   case ALT_d:
     {
-      const char *delimeters = " \t\n:-_'\"()[]{}";
       auto i = m_line->find_first_not_of(delimeters, m_insert_char_at);
       if (i != std::string::npos)
 	  i = m_line->find_first_of(delimeters, i+1);
