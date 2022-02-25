@@ -185,10 +185,10 @@ inline auto LineReader::process_key(int key) -> bool
   case ENTER_KEY:
     if (m_line->empty()) {
       m_history.pop_back();
-      std::cout << '\n';
       m_cursor_position = m_term.get_cursor_position();
     }
     // return from readline
+    std::cout << "\r\n";
     return true;
 
   case CTRL_KEY('h'):
