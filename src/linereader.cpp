@@ -58,8 +58,8 @@ auto LineReader::readline(const char *prompt) -> std::string
 {
   m_term.enable_raw_mode();
 
-  // Add a new string to m_history.
-  m_history.push_back("");
+  if (m_history.empty() or !m_history.back().empty()) m_history.emplace_back("");
+
   m_line = m_history.rbegin();
   m_insert_char_at = 0;
   m_cursor_position = m_term.get_cursor_position();
@@ -183,10 +183,19 @@ inline auto LineReader::process_key(int key) -> bool
   switch (key) {
 
   case ENTER_KEY:
-    if (m_line->empty()) {
-      m_history.pop_back();
-      m_cursor_position = m_term.get_cursor_position();
-    }
+    if (m_line != m_history.rbegin()) {
+      auto modified_cmd = *m_line;
+      // restore original command
+      *m_line = *(m_history_orig.rbegin() + (m_line - m_history.rbegin()) - 1);
+      if (!modified_cmd.empty()) {
+	m_history.pop_back();
+	m_history.emplace_back(modified_cmd);
+	m_history_orig.emplace_back(std::move(modified_cmd));
+      } else m_cursor_position = m_term.get_cursor_position();
+
+      m_line = m_history.rbegin();
+    } else if (!m_line->empty()) m_history_orig.emplace_back(*m_line);
+
     // return from readline
     std::cout << "\r\n";
     return true;
@@ -446,6 +455,7 @@ LineReader::LineReader(const char *historypath) {
       std::getline(history_file, hist_line);
       if (!hist_line.empty()) m_history.push_back(hist_line);
     }
+    m_history_orig = m_history;
   }
 }
 
@@ -453,7 +463,7 @@ LineReader::~LineReader() {
   if (m_historypath != nullptr) {
     auto history_file = std::ofstream(m_historypath);
     if (history_file) {
-      for (const auto& hist_lin: m_history)
+      for (const auto& hist_lin: m_history_orig)
 	history_file << hist_lin << '\n';
 
       history_file.close();

@@ -36,6 +36,7 @@ public:
   operator bool() { return m_good; };
 private:
   std::vector<std::string> m_history;
+  std::vector<std::string> m_history_orig;
   std::vector<std::string> m_killring;
   std::vector<std::string>::reverse_iterator m_line;
   std::vector<std::string>::reverse_iterator m_current_kill;
